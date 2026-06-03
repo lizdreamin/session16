@@ -90,9 +90,10 @@ export async function POST(req: Request) {
 
     const responseMessage = response.choices[0].message;
 
-    if (responseMessage.tool_calls) {
-      const toolCall = responseMessage.tool_calls[0];
-      if (toolCall.function.name === 'getRealBarRecommendation') {
+    // 타임스크립트 에러 우회를 위해 any 타입으로 강제 변환하여 체크
+    if (responseMessage.tool_calls && responseMessage.tool_calls.length > 0) {
+      const toolCall = responseMessage.tool_calls[0] as any;
+      if (toolCall.function && toolCall.function.name === 'getRealBarRecommendation') {
         const toolArgs = JSON.parse(toolCall.function.arguments);
         const toolResult = getRealBarRecommendation(toolArgs.location, toolArgs.mood);
 
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
             { role: 'system', content: systemPrompt },
             ...messages,
             responseMessage,
-            { role: 'tool', tool_call_id: toolCall.id, content: toolResult }
+            { role: 'tool', tool_call_id: toolCall.id, content: toolResult } as any
           ]
         });
 
